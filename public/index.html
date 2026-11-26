@@ -1,0 +1,121 @@
+<!doctype html>
+<!-- WSL 本地 CLI 用量和 agy 账号的浏览器入口。 -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#eef2f6">
+  <title>CLI 用量台</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="mast">
+    <div class="frame mast-inner">
+      <a class="brand" href="#usage" aria-label="CLI 用量台首页"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>CLI 用量台</a>
+      <nav aria-label="主导航">
+        <a href="#usage" id="usage-tab" aria-current="page">用量统计</a>
+        <a href="#accounts" id="accounts-tab">agy 账号</a>
+      </nav>
+    </div>
+  </header>
+  <main class="frame">
+    <section id="usage" aria-labelledby="usage-title">
+      <header class="page-head">
+        <div>
+          <div class="usage-heading">
+            <h1 id="usage-title">模型用量</h1>
+            <div class="periods source-switch" role="group" aria-label="用量来源">
+              <button type="button" data-source="codex" aria-pressed="true">Codex</button>
+              <button type="button" data-source="agy" aria-pressed="false">agy</button>
+            </div>
+          </div>
+          <p class="subtitle" id="date-range" aria-live="polite"></p>
+        </div>
+        <div class="tools">
+          <div class="periods" role="group" aria-label="统计周期">
+            <button type="button" data-period="today" aria-pressed="false">今天</button>
+            <button type="button" data-period="week" aria-pressed="true">本周</button>
+            <button type="button" data-period="last-week" aria-pressed="false">上周</button>
+            <button type="button" data-period="month" aria-pressed="false">本月</button>
+            <button type="button" data-period="custom" id="custom-toggle" aria-controls="date-form" aria-expanded="false" aria-pressed="false">自选日期</button>
+          </div>
+          <button type="button" class="outline" id="usage-refresh">刷新</button>
+        </div>
+      </header>
+      <form id="date-form" class="date-form" hidden>
+        <label>开始日期<input type="date" name="since" id="since" min="0001-01-01" max="9999-12-31" required></label>
+        <label>结束日期<input type="date" name="until" id="until" min="0001-01-01" max="9999-12-31" required></label>
+        <button class="primary" type="submit">查询用量</button>
+      </form>
+      <section class="panel current-quota" aria-labelledby="current-quota-title">
+        <h2 id="current-quota-title">当前账号剩余额度</h2>
+        <div id="current-quota-body" aria-live="polite"></div>
+      </section>
+      <p id="usage-status" class="status" role="status">正在读取用量…</p>
+      <div id="usage-content" hidden>
+        <div class="overview">
+          <section class="totals" aria-label="本期合计">
+            <div class="metric"><h2 id="total-label">Token 合计</h2><strong id="total-tokens"></strong></div>
+            <div class="metric"><h2 id="cost-label">API 等价费用</h2><strong id="total-cost"></strong></div>
+          </section>
+          <section class="trend panel" aria-labelledby="trend-title">
+            <h2 id="trend-title">每日 Token</h2>
+            <div id="legend" class="legend"></div>
+            <p class="fine" id="trend-range" hidden></p>
+            <p class="fine" id="trend-empty" hidden>所示日期没有 Token 记录。</p>
+            <div class="plot">
+              <div class="scale" aria-hidden="true"><span id="axis-high"></span><span id="axis-mid"></span><span>0</span></div>
+              <div id="chart-scroll"><div id="days" role="group" aria-label="选择日期查看模型用量"></div></div>
+            </div>
+            <div class="chart-inspector">
+              <div class="day-summary" aria-live="polite"><strong id="day-date"></strong><span id="day-total"></span></div>
+              <ul id="day-detail" aria-label="所选日期的模型明细"></ul>
+            </div>
+          </section>
+        </div>
+        <section class="panel model-panel" aria-labelledby="models-title">
+          <div class="panel-head table-head"><h2 id="models-title">模型明细</h2><span>Token / USD</span></div>
+          <div class="table-wrap" role="region" aria-label="模型明细，可横向滚动" tabindex="0">
+            <table>
+              <thead><tr><th scope="col">模型</th><th scope="col">Token 合计</th><th scope="col">API 等价费用</th><th class="token-part" scope="col">非缓存输入</th><th class="token-part" scope="col">缓存读取</th><th class="token-part" scope="col">输出</th></tr></thead>
+              <tbody id="model-rows"></tbody>
+            </table>
+          </div>
+          <div class="table-foot"><p class="fine">费用按 ccusage 内置的模型 API 价格估算，单位为美元。</p><a id="codex-analytics" href="https://chatgpt.com/settings/usage?tab=analytics" target="_blank" rel="noopener noreferrer">Codex 官方用量 ↗</a></div>
+          <p class="fine" id="usage-warnings"></p>
+        </section>
+      </div>
+    </section>
+    <section id="accounts" hidden aria-labelledby="accounts-title">
+      <header class="page-head">
+        <div><h1 id="accounts-title">agy 账号</h1><p class="subtitle">切换后，重新打开 agy 会话即可使用所选账号。</p></div>
+        <div class="tools"><button type="button" id="accounts-refresh" class="outline">刷新</button><button type="button" id="add-account" class="primary">添加账号</button></div>
+      </header>
+      <p class="status" id="accounts-status" role="status"></p>
+      <section class="panel account-panel">
+        <div class="panel-head"><h2>账号与剩余额度</h2></div>
+        <ul id="account-list" aria-label="本地账号"></ul>
+      </section>
+    </section>
+  </main>
+  <dialog id="login-dialog" aria-labelledby="login-title">
+    <h2 id="login-title">添加 agy 账号</h2>
+    <p class="status" id="login-status" role="status"></p>
+    <form id="login-form" method="post" autocomplete="off">
+      <div id="login-fields" hidden>
+        <p class="fine">在 Google 中选择新账号并完成授权，将返回的一次性授权码粘贴到下方。</p>
+        <a id="login-link" class="outline" target="_blank" rel="noopener noreferrer">打开 Google 授权页 ↗</a>
+        <label for="login-code">一次性授权码</label>
+        <input id="login-code" type="password" maxlength="4096" autocapitalize="none" spellcheck="false" autocomplete="off">
+      </div>
+      <div class="login-actions">
+        <button type="button" class="outline" id="login-cancel">取消</button>
+        <button type="button" class="primary" id="login-retry" hidden>重新授权</button>
+        <button type="submit" class="primary" id="login-finish" hidden>保存新账号</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

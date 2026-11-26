@@ -1,0 +1,15 @@
+# 本地系统服务配置，公开版用户服务位于 systemd/。
+/ai-cli-usage.service
+.env
+.env.*
+*.log
+*.jsonl
+*.pem
+*.key
+node_modules/
+.codex/
+.gemini/
+.config/agy-auth/
+auth.json
+registry.json
+antigravity-oauth-token

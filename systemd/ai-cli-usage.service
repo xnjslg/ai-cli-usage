@@ -1,0 +1,16 @@
+# 以使用 Codex 和 agy 的用户身份运行本地用量面板。
+[Unit]
+Description=Local Codex and Antigravity usage dashboard
+
+[Service]
+Type=exec
+ExecStart=%h/.local/bin/ai-cli-usage --foreground
+Environment="PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment=AGY_CLI_DISABLE_AUTO_UPDATE=true
+UMask=0077
+NoNewPrivileges=true
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

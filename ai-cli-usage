@@ -1,0 +1,29 @@
+#!/bin/sh
+# 启动本地用量网页，支持前台、systemd 用户服务和已有系统服务。
+set -eu
+umask 077
+
+serve() {
+    app=$(readlink -f -- "$0")
+    exec node "$(dirname -- "$app")/server.mjs"
+}
+
+if [ "$#" -gt 0 ]; then
+    if [ "$#" -eq 1 ] && [ "$1" = "--foreground" ]; then serve; fi
+    echo "用法：ai-cli-usage [--foreground]" >&2
+    exit 2
+fi
+
+unit=ai-cli-usage.service
+if ! command -v systemctl >/dev/null 2>&1; then serve; fi
+if systemctl is-active --quiet "$unit" 2>/dev/null; then
+    echo 'http://localhost:8789/'
+    exit 0
+elif systemctl --user cat "$unit" >/dev/null 2>&1; then
+    systemctl --user start "$unit"
+elif systemctl cat "$unit" >/dev/null 2>&1; then
+    systemctl start "$unit"
+else
+    serve
+fi
+echo 'http://localhost:8789/'
